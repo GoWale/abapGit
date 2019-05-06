@@ -10,6 +10,7 @@ order: 50
 * Queensland Health
 * RheinEnergie AG, Cologne, Germany
 * Sword Holdings
+* [CHS Inc.](https://www.chsinc.com)
 
 ### SAP
 * [SAP IBSO](https://www.sap.com/services/application-development.html)

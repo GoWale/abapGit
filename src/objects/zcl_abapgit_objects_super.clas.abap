@@ -164,7 +164,6 @@ CLASS ZCL_ABAPGIT_OBJECTS_SUPER IMPLEMENTATION.
         devclass            = iv_package
         master_language     = mv_language
         global_lock         = abap_true
-        author              = sy-uname
         mode                = 'I'
         suppress_dialog     = abap_true
       EXCEPTIONS
@@ -314,7 +313,6 @@ CLASS ZCL_ABAPGIT_OBJECTS_SUPER IMPLEMENTATION.
         suppress_protocol         = abap_false
         with_program_includes     = abap_false
         suppress_dictionary_check = abap_false
-        phased_activation         = abap_false
       TABLES
         p_e071                    = lt_e071_tadirs
         p_xmsg                    = lt_messages.

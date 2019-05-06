@@ -103,6 +103,10 @@ CLASS ZCL_ABAPGIT_OBJECT_SFPI IMPLEMENTATION.
     lv_name = ms_item-obj_name.
     lv_xstr = cl_ixml_80_20=>render_to_xstring( io_xml->get_raw( ) ).
 
+    IF zif_abapgit_object~exists( ) = abap_true.
+      zif_abapgit_object~delete( ).
+    ENDIF.
+
     TRY.
         li_interface = cl_fp_helper=>convert_xstring_to_interface( lv_xstr ).
         tadir_insert( iv_package ).
@@ -138,19 +142,7 @@ CLASS ZCL_ABAPGIT_OBJECT_SFPI IMPLEMENTATION.
 
 
   METHOD zif_abapgit_object~get_deserialize_steps.
-
-    DATA: ls_meta TYPE zif_abapgit_definitions=>ty_metadata.
-
-    ls_meta = zif_abapgit_object~get_metadata( ).
-
-    IF ls_meta-late_deser = abap_true.
-      APPEND zif_abapgit_object=>gc_step_id-late TO rt_steps.
-    ELSEIF ls_meta-ddic = abap_true.
-      APPEND zif_abapgit_object=>gc_step_id-ddic TO rt_steps.
-    ELSE.
-      APPEND zif_abapgit_object=>gc_step_id-abap TO rt_steps.
-    ENDIF.
-
+    APPEND zif_abapgit_object=>gc_step_id-abap TO rt_steps.
   ENDMETHOD.
 
 

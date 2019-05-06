@@ -10,12 +10,12 @@ CLASS zcl_abapgit_serialize DEFINITION
         !p_task TYPE clike .
     METHODS serialize
       IMPORTING
-        !it_tadir            TYPE zif_abapgit_definitions=>ty_tadir_tt
-        !iv_language         TYPE langu DEFAULT sy-langu
-        !ii_log              TYPE REF TO zif_abapgit_log OPTIONAL
-        !iv_force_sequential TYPE abap_bool DEFAULT abap_false
+        it_tadir            TYPE zif_abapgit_definitions=>ty_tadir_tt
+        iv_language         TYPE langu DEFAULT sy-langu
+        ii_log              TYPE REF TO zif_abapgit_log OPTIONAL
+        iv_force_sequential TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(rt_files)      TYPE zif_abapgit_definitions=>ty_files_item_tt
+        VALUE(rt_files)     TYPE zif_abapgit_definitions=>ty_files_item_tt
       RAISING
         zcx_abapgit_exception .
 
@@ -53,9 +53,7 @@ CLASS zcl_abapgit_serialize DEFINITION
         zcx_abapgit_exception .
   PRIVATE SECTION.
 
-    METHODS is_merged
-      RETURNING
-        VALUE(rv_result) TYPE abap_bool .
+
 ENDCLASS.
 
 
@@ -85,7 +83,7 @@ CLASS ZCL_ABAPGIT_SERIALIZE IMPLEMENTATION.
 
     lo_settings = zcl_abapgit_persist_settings=>get_instance( )->read( ).
 
-    IF is_merged( ) = abap_true
+    IF zcl_abapgit_environment=>is_merged( ) = abap_true
         OR lo_settings->get_parallel_proc_disabled( ) = abap_true.
       gv_max_threads = 1.
     ENDIF.
@@ -155,25 +153,11 @@ CLASS ZCL_ABAPGIT_SERIALIZE IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD is_merged.
-
-    DATA lo_marker TYPE REF TO data ##NEEDED.
-
-    TRY.
-        CREATE DATA lo_marker TYPE REF TO ('LIF_ABAPMERGE_MARKER')  ##no_text.
-        "No exception --> marker found
-        rv_result = abap_true.
-
-      CATCH cx_sy_create_data_error  ##no_handler.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
   METHOD on_end_of_task.
 
     DATA: lv_result    TYPE xstring,
           lv_path      TYPE string,
+          lv_mess      TYPE c LENGTH 200,
           ls_fils_item TYPE zcl_abapgit_objects=>ty_serialization.
 
 
@@ -183,10 +167,16 @@ CLASS ZCL_ABAPGIT_SERIALIZE IMPLEMENTATION.
         ev_path   = lv_path
       EXCEPTIONS
         error     = 1
-        OTHERS    = 2.
+        system_failure = 2 MESSAGE lv_mess
+        communication_failure = 3 MESSAGE lv_mess
+        OTHERS = 4.
     IF sy-subrc <> 0.
       IF NOT mi_log IS INITIAL.
-        mi_log->add_error( |{ sy-msgv1 }{ sy-msgv2 }{ sy-msgv3 }{ sy-msgv3 }| ).
+        IF NOT lv_mess IS INITIAL.
+          mi_log->add_error( lv_mess ).
+        ELSE.
+          mi_log->add_error( |{ sy-msgv1 }{ sy-msgv2 }{ sy-msgv3 }{ sy-msgv3 }, { sy-subrc }| ).
+        ENDIF.
       ENDIF.
     ELSE.
       IMPORT data = ls_fils_item FROM DATA BUFFER lv_result. "#EC CI_SUBRC
